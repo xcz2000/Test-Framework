@@ -1,0 +1,26 @@
+{
+  "name": "Test Framework",
+  "tree": {
+    "$className": "DataModel",
+
+    "ReplicatedStorage": {
+      "Modules": {
+        "$path": "src/Modules"
+      }
+    },
+
+    "ServerScriptService": {
+      "Server": {
+        "$path": "src/server"
+      }
+    },
+
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "Framework": {
+          "$path": "src/Framework"
+        }
+      }
+    }
+  }
+}
