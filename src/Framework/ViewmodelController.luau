@@ -6,9 +6,6 @@ local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
 
-local character = player.Character or player.CharacterAdded:Wait() -- get the player's character or wait for it to be added
-local humanoid = character:WaitForChild("Humanoid") -- wait for humanoid to load
-
 local viewmodelController = {}
 viewmodelController.__index = viewmodelController
 
@@ -72,7 +69,7 @@ function viewmodelController:UpdateAimCF(deltatime: number) -- update aim cframe
 end
 
 function viewmodelController:UpdateBobble(deltatime: number) -- update bobble cframe method
-	if humanoid.MoveDirection.Magnitude > 0 then -- check if player is moving
+	if player.Character.Humanoid.MoveDirection.Magnitude > 0 then -- check if player is moving
 		-- calculate x and y values for bobble using sine wave
 		-- since time is always increasing math.sin combined with tick() creates a sine wave
 		local bobbleX = math.sin(tick() * self.bobbleSpeed) * self.bobbleAplitude

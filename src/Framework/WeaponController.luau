@@ -12,9 +12,6 @@ local guiController = require(script.Parent.GUIController)
 local player = Players.LocalPlayer
 local camera = workspace.CurrentCamera
 
-local character = player.Character or player.CharacterAdded:Wait() -- get the player's character or wait for it to be added
-local humanoid = character:WaitForChild("Humanoid") -- wait for humanoid to load
-
 -- get gun models and modules folders
 local gunModels = ReplicatedStorage.GunModels
 local gunModules = ReplicatedStorage.Modules.Gun
@@ -86,7 +83,7 @@ function weaponController:Init(name) -- initialization function for weapon contr
 	self.viewmodelController = viewmodelController.new(self)
 	self.guiController = guiController.new(self)
 
-	humanoid.Died:Once(function()
+	player.Character.Humanoid.Died:Once(function()
 		self.actionController:Destroy()
 		self.inputController:Destroy()
 		self.viewmodelController:Destroy()
