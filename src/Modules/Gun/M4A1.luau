@@ -1,5 +1,7 @@
+-- require services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+-- specify settings for M4A1 weapon
 local Settings = {
 	canAim = true,
 	firerate = 0.125,
@@ -17,4 +19,4 @@ local Settings = {
 	maxAmmo = 30,
 }
 
-return Settings
+return Settings -- return settings module
