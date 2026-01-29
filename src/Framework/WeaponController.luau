@@ -1,6 +1,9 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local viewmodelController = require(script.Parent.ViewmodelController)
+local inputController = require(script.Parent.InputController)
+local actionController = require(script.Parent.ActionController)
+local guiController = require(script.Parent.GUIController)
 
 local camera = workspace.CurrentCamera
 
@@ -13,11 +16,16 @@ weaponController.__index = weaponController
 function weaponController.new(name: string)
 	local self = setmetatable({}, weaponController)
 
+	self.ammoChanged = Instance.new("BindableEvent")
+
 	self.viewmodelController = nil
+	self.inputController = nil
+	self.actionController = nil
 	self.weapon = nil
 	self.module = nil
 	self.animator = nil
 	self.root = nil
+	self.firePoint = nil
 	self.ammo = 0
 	self.animations = {}
 	self.sounds = {}
@@ -40,28 +48,32 @@ function weaponController:Init(name)
 	end
 	self.weapon = weapon:Clone()
 
+	self.weapon.Parent = camera
+
 	self.root = self.weapon.HumanoidRootPart
 	self.ammo = self.module.maxAmmo
+	self.firePoint = self.weapon.FirePoint
 
 	self.animator = self.weapon.AnimationController.Animator
 
 	for animName, id in self.module.animations do
 		local newAnim = Instance.new("Animation")
-		newAnim.AnimationId = id
+		newAnim.Name = name
+		newAnim.AnimationId = "rbxassetid://" .. id
+		newAnim.Parent = self.weapon
 		self.animations[animName] = self.animator:LoadAnimation(newAnim)
-		newAnim:Destroy()
 	end
 
-	for soundName, id in self.module.sounds do
-		local newSound = Instance.new("Sound")
-		newSound.SoundId = id
+	for soundName, sound in self.module.sounds do
+		local newSound = sound:Clone()
 		newSound.Parent = self.root
 		self.sounds[soundName] = newSound
 	end
 
-	self.weapon.Parent = camera
-
+	self.actionController = actionController.new(self)
+	self.inputController = inputController.new(self)
 	self.viewmodelController = viewmodelController.new(self)
+	self.guiController = guiController.new(self)
 end
 
 return weaponController

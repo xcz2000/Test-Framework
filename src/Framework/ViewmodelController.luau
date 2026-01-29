@@ -1,5 +1,4 @@
 local RunService = game:GetService("RunService")
-local UserInputService = game:GetService("UserInputService")
 local Players = game:GetService("Players")
 
 local player = Players.LocalPlayer
@@ -15,6 +14,8 @@ function viewmodelController.new(weaponController)
 	local self = setmetatable({}, viewmodelController)
 
 	self.weaponController = weaponController
+	self.input = weaponController.inputController
+	self.action = weaponController.actionController
 
 	self.weapon = weaponController.weapon
 	self.root = self.weapon.HumanoidRootPart
@@ -27,61 +28,47 @@ function viewmodelController.new(weaponController)
 	self.bobbleAplitude = 0.04
 	self.bobbleSpeed = 5
 	self.lerpSpeed = 0.0025
-	self.aiming = false
-
-	-- TODO: split this into its own functions
-
-	UserInputService.InputBegan:Connect(function(input: InputObject, gameProcessedEvent: boolean)
-		if gameProcessedEvent then
-			return
-		end
-
-		if input.UserInputType == Enum.UserInputType.MouseButton2 then
-			self.aiming = true
-		end
-	end)
-
-	UserInputService.InputEnded:Connect(function(input: InputObject, gameProcessedEvent: boolean)
-		if gameProcessedEvent then
-			return
-		end
-
-		if input.UserInputType == Enum.UserInputType.MouseButton2 then
-			self.aiming = false
-		end
-	end)
 
 	RunService.RenderStepped:Connect(function(deltatime)
-		if self.weaponController.weapon then
-			local swayDifference = camera.CFrame:ToObjectSpace(self.lastCameraCF)
-			local rx, ry, _ = swayDifference:ToEulerAnglesXYZ()
-			self.swayCFrame = self.swayCFrame:Lerp(
-				CFrame.Angles(math.sin(rx) * 2, math.sin(ry) * 2, 0),
-				1 - self.lerpSpeed ^ deltatime
-			)
+		self:UpdateSway(deltatime)
+		self:UpdateAimCF(deltatime)
+		self:UpdateBobble(deltatime)
 
-			if self.aiming then
-				local offset = self.aimPart.CFrame:ToObjectSpace(self.root.CFrame)
-				self.aimCFrame = self.aimCFrame:Lerp(offset, 1 - self.lerpSpeed ^ deltatime)
-			else
-				self.aimCFrame = self.aimCFrame:Lerp(CFrame.new(), 1 - self.lerpSpeed ^ deltatime)
-			end
-
-			if humanoid.MoveDirection.Magnitude > 0 then
-				local bobbleX = math.sin(tick() * self.bobbleSpeed) * self.bobbleAplitude
-				local bobbleY = math.sin(tick() * self.bobbleSpeed * 2) * self.bobbleAplitude
-				self.bobbleCFrame =
-					self.bobbleCFrame:Lerp(CFrame.new(bobbleX, bobbleY, 0), 1 - self.lerpSpeed ^ deltatime)
-			else
-				self.bobbleCFrame = self.bobbleCFrame:Lerp(CFrame.new(), 1 - self.lerpSpeed ^ deltatime)
-			end
-
-			self.weapon:SetPrimaryPartCFrame(camera.CFrame * self.aimCFrame * self.bobbleCFrame * self.swayCFrame)
-			self.lastCameraCF = camera.CFrame
+		if self.input.shooting then
+			self.action:TryFire()
 		end
+
+		self.weapon:SetPrimaryPartCFrame(camera.CFrame * self.aimCFrame * self.bobbleCFrame * self.swayCFrame)
 	end)
 
 	return self
+end
+
+function viewmodelController:UpdateSway(deltatime: number)
+	local swayDifference = camera.CFrame:ToObjectSpace(self.lastCameraCF)
+	local rx, ry, _ = swayDifference:ToEulerAnglesXYZ()
+	self.swayCFrame =
+		self.swayCFrame:Lerp(CFrame.Angles(math.sin(rx) * 2, math.sin(ry) * 2, 0), 1 - self.lerpSpeed ^ deltatime)
+	self.lastCameraCF = camera.CFrame
+end
+
+function viewmodelController:UpdateAimCF(deltatime: number)
+	if self.input.aiming then
+		local offset = self.aimPart.CFrame:ToObjectSpace(self.root.CFrame)
+		self.aimCFrame = self.aimCFrame:Lerp(offset, 1 - self.lerpSpeed ^ deltatime)
+	else
+		self.aimCFrame = self.aimCFrame:Lerp(CFrame.new(), 1 - self.lerpSpeed ^ deltatime)
+	end
+end
+
+function viewmodelController:UpdateBobble(deltatime: number)
+	if humanoid.MoveDirection.Magnitude > 0 then
+		local bobbleX = math.sin(tick() * self.bobbleSpeed) * self.bobbleAplitude
+		local bobbleY = math.sin(tick() * self.bobbleSpeed * 2) * self.bobbleAplitude
+		self.bobbleCFrame = self.bobbleCFrame:Lerp(CFrame.new(bobbleX, bobbleY, 0), 1 - self.lerpSpeed ^ deltatime)
+	else
+		self.bobbleCFrame = self.bobbleCFrame:Lerp(CFrame.new(), 1 - self.lerpSpeed ^ deltatime)
+	end
 end
 
 return viewmodelController
