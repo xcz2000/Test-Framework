@@ -14,7 +14,7 @@
     },
 
     "StarterPlayer": {
-      "StarterPlayerScripts": {
+      "StarterCharacterScripts": {
         "Framework": {
           "$path": "src/Framework"
         }
